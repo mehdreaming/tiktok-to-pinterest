@@ -2,7 +2,7 @@
 
 > Find viral TikToks, download them watermark-free in HD, generate AI-powered Pinterest copy, and queue everything in Google Sheets for review — all on autopilot.
 
-![Workflow](TikTok → Pinterest.png)
+![Workflow](workflow.png)
 
 Built with [n8n](https://n8n.io), runs on free tiers of every service used.
 
