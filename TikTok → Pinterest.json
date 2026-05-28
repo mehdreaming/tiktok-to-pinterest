@@ -1,0 +1,750 @@
+{
+  "name": "TikTok → Pinterest",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d9fea6c-8c01-49f2-8310-401c516f74d6",
+              "name": "keyword",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -512,
+        112
+      ],
+      "id": "54b9456e-03f3-4e6f-b8dc-7f16421f3434",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"searchQueries\": [\"{{ $json.keyword }}\"],\n  \"resultsPerPage\": 50,\n  \"shouldDownloadVideos\": true,\n  \"proxyConfiguration\": { \"useApifyProxy\": true }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -288,
+        224
+      ],
+      "id": "eff02cef-3aff-49c0-9be7-fe2f66638a3f",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_YOUR_APIFY_CRED_ID",
+          "name": "Apify"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let keyword = '';\ntry {\n  keyword = ($('Edit Fields').first().json.keyword || '').toLowerCase();\n} catch (e) {\n  keyword = '';\n}\nconst terms = keyword.split(/\\s+/).filter(t => t.length >= 3);\n\nreturn items\n  .filter(item => {\n    if (terms.length === 0) return true;\n    const v = item.json;\n    const haystack = `${v.text || ''} ${v.authorMeta?.name || ''} ${v.authorMeta?.nickName || ''}`.toLowerCase();\n    return terms.some(t => haystack.includes(t));\n  })\n  .map(item => {\n    const v = item.json;\n    const vm = v.videoMeta || {};\n    const downloadUrl = vm.downloadAddr || vm.playAddr || vm.downloadLink || (Array.isArray(v.mediaUrls) && v.mediaUrls[0]) || null;\n    return {\n      json: {\n        id: v.id,\n        url: v.webVideoUrl,\n        author: v.authorMeta?.name,\n        views: v.playCount ?? 0,\n        shares: v.shareCount ?? 0,\n        likes: v.diggCount ?? 0,\n        duration: vm.duration ?? 0,\n        downloadUrl,\n        cover: vm.coverUrl || null,\n        caption: v.text || ''\n      }\n    };\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        128
+      ],
+      "id": "802adfe3-ec7b-4483-af8a-cb0f69cdbe53",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "63bc6c11-0271-4056-9f21-994d3f463565",
+              "leftValue": "={{ $json.views }}",
+              "rightValue": 100000,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "2516011e-7a12-4bd3-9b55-a12aee9ed1ab",
+              "leftValue": "={{ $json.shares }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "1047e620-6308-44d6-aaa4-466d78f6f1b8",
+              "leftValue": "={{ $json.duration }}",
+              "rightValue": 30,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        64
+      ],
+      "id": "057afb56-b469-439b-a787-55fe79cde04b",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        736,
+        64
+      ],
+      "id": "db9427d6-f6cd-459f-b69b-1f9ed8c74f50",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.hdplay }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Referer",
+              "value": "https://www.tiktok.com/"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1500
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1136,
+        64
+      ],
+      "id": "9c9d291a-22ac-405c-8e2b-73f9648674e5",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.data.id }}.mp4",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "YOUR_DRIVE_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "TikTok Pins",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/YOUR_DRIVE_FOLDER_ID"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        64
+      ],
+      "id": "95d538a6-e05d-4d56-8387-fbab43ed4493",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GDRIVE_CRED_ID",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map((item, i) => {\n\tconst meta = $('Limit').all()[i].json;\n\n\tlet keyword = 'viral content';\n\ttry { keyword = $('Edit Fields').first().json.keyword || keyword; } catch(e) {\n\t\ttry { keyword = $('Set Schedule Keyword').first().json.keyword || keyword; } catch(e2) {}\n\t}\n\n\tconst prompt = `Keyword/Niche: ${keyword}\nTikTok caption: ${meta.caption || '(no caption)'}\nCreator: @${meta.author || 'unknown'}\nViews: ${meta.views || 0}\nShares: ${meta.shares || 0}\nDuration: ${meta.duration || 0}s\n\nBased on this specific TikTok video about \"${keyword}\", create a UNIQUE Pinterest pin title and description. Reference the actual caption content and niche. Do NOT use generic phrases — make it specific to THIS video.`;\n\n\treturn {\n\t\tjson: {\n\t\t\t...meta,\n\t\t\tdrive_file_id: item.json.id,\n\t\t\tdrive_url: item.json.webViewLink,\n\t\t\tdrive_name: item.json.name,\n\t\t\tprompt: prompt\n\t\t}\n\t};\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        448
+      ],
+      "id": "87b39bdf-c581-4a21-827e-2c29823c8aa4",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {
+          "systemMessage": "You are a Pinterest growth expert. You will be given details about a specific TikTok video — its caption, creator, view count, and niche keyword.\n\nYour task: produce a UNIQUE pin title and description tailored to THIS exact video. Never use generic phrases like \"Discover delicious and nutritious...\" Always reference the actual caption or creator's angle.\n\nRequirements:\n- pin_title: max 100 chars, click-worthy, specific to this video's content\n- pin_description: 200-500 chars, includes 3-5 niche-relevant hashtags\n\nOutput pure JSON only: {\"title\": \"...\", \"description\": \"...\"}\nNo markdown, no code fences, no commentary."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1184,
+        448
+      ],
+      "id": "a9a08dba-e0ae-4ba6-8b09-accafd6cddf6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        624
+      ],
+      "id": "ff091df7-595c-4133-bfb8-088527b21b6c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "REPLACE_WITH_YOUR_GROQ_CRED_ID",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map((item, i) => {\n\tconst meta = $('Code in JavaScript1').all()[i].json;\n\n\tlet keyword = 'healthy recipes';\n\ttry { keyword = $('Edit Fields').first().json.keyword || keyword; } catch(e) {\n\t\ttry { keyword = $('Set Schedule Keyword').first().json.keyword || keyword; } catch(e2) {}\n\t}\n\n\tlet raw = item.json.output ?? item.json.text ?? item.json;\n\n\tlet parsed;\n\tif (typeof raw === 'object' && raw !== null && (raw.title || raw.description)) {\n\t\tparsed = raw;\n\t} else {\n\t\tlet str = String(raw).replace(/```json|```/g, '').trim();\n\t\ttry {\n\t\t\tparsed = JSON.parse(str);\n\t\t} catch {\n\t\t\tconst match = str.match(/\\{[\\s\\S]*\\}/);\n\t\t\tif (match) {\n\t\t\t\ttry { parsed = JSON.parse(match[0]); } catch { parsed = { title: '', description: str }; }\n\t\t\t} else {\n\t\t\t\tparsed = { title: '', description: str };\n\t\t\t}\n\t\t}\n\t}\n\n\treturn {\n\t\tjson: {\n\t\t\ttimestamp: new Date().toISOString(),\n\t\t\tkeyword: keyword,\n\t\t\t...meta,\n\t\t\tpin_title: parsed.title || '',\n\t\t\tpin_description: parsed.description || '',\n\t\t\tstatus: 'Pending'\n\t\t}\n\t};\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        448
+      ],
+      "id": "0bb97fd3-842f-43ab-ae2a-c00eca623da6",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Pinterest Queue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tiktok_url": "={{ $json.url }}",
+            "duration": "={{ $json.duration }}",
+            "shares": "={{ $json.shares }}",
+            "views": "={{ $json.views }}",
+            "drive_file_id": "={{ $json.drive_file_id }}",
+            "drive_url": "={{ $json.drive_url }}",
+            "pin_title": "={{ $json.pin_title }}",
+            "pin_description": "={{ $json.pin_description }}",
+            "timestamp": "={{ $json.timestamp }}",
+            "keyword": "={{ $json.keyword }}",
+            "status": "={{ $json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "keyword",
+              "displayName": "keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tiktok_url",
+              "displayName": "tiktok_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "views",
+              "displayName": "views",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shares",
+              "displayName": "shares",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "duration",
+              "displayName": "duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "drive_file_id",
+              "displayName": "drive_file_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "drive_url",
+              "displayName": "drive_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pin_title",
+              "displayName": "pin_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pin_description",
+              "displayName": "pin_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1696,
+        448
+      ],
+      "id": "e72ab47d-f66b-48ff-832e-a57cb0b7f63c",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GSHEETS_CRED_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -848,
+        240
+      ],
+      "id": "49da942f-d298-41c7-ad8e-43b22b381566",
+      "name": "When chat message received",
+      "webhookId": "(just delete the whole "webhookId": "..." line, n8n regenerates on import)"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -816,
+        464
+      ],
+      "id": "19aa13cd-62ba-431c-b083-23e281d21b09",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8bc92fe5-ef73-4544-806e-eb070a863c5c",
+              "name": "keyword",
+              "value": "={{['naruto edit', 'demon slayer edit', 'jujutsu kaisen edit', 'one piece edit', 'attack on titan edit'][Math.floor(Math.random() * 5)]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -512,
+        336
+      ],
+      "id": "53249298-cbc7-49b1-befd-7fbb4ff8b55b",
+      "name": "Set Schedule Keyword"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.tikwm.com/api/?url={{ $json.url }}&hd=1",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1500
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        912,
+        64
+      ],
+      "id": "e12b6f5e-a7d1-4a04-b098-d96688dffe5f",
+      "name": "Get Direct URL"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Pinterest Queue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        64
+      ],
+      "id": "a9ebc121-7e74-445e-a267-e1e235a26d13",
+      "name": "Get Existing URLs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GSHEETS_CRED_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const existingUrls = new Set();\ntry {\n\tconst sheetRows = $('Get Existing URLs').all();\n\tfor (const row of sheetRows) {\n\t\tif (row.json.tiktok_url) existingUrls.add(row.json.tiktok_url);\n\t}\n} catch (e) {}\n\nconst candidates = $('Filter').all();\nconst fresh = candidates.filter(item => !existingUrls.has(item.json.url));\n\nconsole.log(`Dedup: ${candidates.length} → ${fresh.length} fresh (${existingUrls.size} in sheet)`);\n\nreturn fresh;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        64
+      ],
+      "id": "6a9b760f-0367-45a0-921c-8ac8fb756c78",
+      "name": "Dedup Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Get Existing URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Get Direct URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Schedule Keyword",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Schedule Keyword": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Direct URL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing URLs": {
+      "main": [
+        [
+          {
+            "node": "Dedup Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedup Code": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  (delete this line),
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    (delete this line)
+  },
+  (delete this line),
+  "tags": []
+}
