@@ -340,12 +340,15 @@ The redirect URI in Google Cloud Console must EXACTLY match n8n's callback URL. 
 ---
 
 ## 📂 Repo structure
+```text
 .
-├── TikTok → Pinterest.json   # Importable n8n workflow
-├── workflow.png               # Architecture screenshot
-├── LICENSE                    # MIT
-├── README.md                  # This file
-└── .gitignore
+├── TikTok-to-Pinterest.json   # Importable n8n workflow
+├── workflow.png               # Workflow architecture screenshot
+├── LICENSE                    # MIT License
+├── README.md                  # Project documentation
+└── .gitignore                 # Ignore unnecessary files
+```
+
 
 ---
 
