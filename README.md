@@ -4,7 +4,7 @@
 [![n8n](https://img.shields.io/badge/built%20with-n8n-EA4B71.svg)](https://n8n.io)
 [![Cost](https://img.shields.io/badge/cost-%240%2Fmonth-brightgreen.svg)]()
 [![Made with AI](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter-blueviolet.svg)]()
-
+![Workflow](workflow.png)
 > Auto-discover viral TikToks → AI-generate Pinterest pin copy → queue in Google Sheets for review. Built with n8n. **Free tier only — $0/month.**
 
 A single n8n workflow that scrapes TikTok by keyword, filters for viral content, downloads watermark-free HD videos, uploads them to Google Drive, generates SEO-optimized Pinterest titles + descriptions with AI, and writes everything to a Google Sheet for manual review.
@@ -134,7 +134,6 @@ https://YOUR-N8N-SUBDOMAIN.app.n8n.cloud/rest/oauth2-credential/callback
 1. Go to [sheets.google.com](https://sheets.google.com) → create a new sheet
 2. Name it `Pinterest Queue`
 3. Add these column headers in Row 1:
-
 timestamp | keyword | tiktok_url | views | shares | duration | drive_file_id | drive_url | pin_title | pin_description | status
 5. **Copy the Sheet ID** from the URL: `docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`
 
