@@ -12,21 +12,25 @@ A single n8n workflow that scrapes TikTok by keyword, filters for viral content,
 ---
 
 ## ✨ What it does
+```mermaid
 flowchart LR
-    A[Chat / Schedule Trigger] --> B[Apify TikTok Scraper]
-    B --> C[Normalize + Filter Slideshows]
+    A["Chat / Schedule Trigger"]
+        --> B["Apify TikTok Scraper"]
 
-    C --> D{Views >= 100k?<br/>Shares >= 100?}
+    B --> C["Normalize + Filter Slideshows"]
 
-    D -->|Yes| E[Dedup vs Sheet]
-    D -->|No| X[Skip]
+    C --> D{"Views ≥ 100k<br>Shares ≥ 100?"}
 
-    E --> F[Limit Top 3]
-    F --> G[tikwm.com HD Download]
-    G --> H[Upload to Google Drive]
-    H --> I[AI Agent: Generate Pin Copy]
-    I --> J[Append to Google Sheet]
-    J --> K[You review + post manually]
+    D -- Yes --> E["Dedup vs Sheet"]
+    D -- No --> X["Skip"]
+
+    E --> F["Limit Top 3"]
+    F --> G["tikwm.com HD Download"]
+    G --> H["Upload to Google Drive"]
+    H --> I["AI Agent: Generate Pin Copy"]
+    I --> J["Append to Google Sheet"]
+    J --> K["You review + post manually"]
+```
 
 - 🔍 **Keyword-driven discovery** — type `slow living` or `anime amv` and the workflow finds top-performing TikToks
 - 📥 **Watermark-free HD downloads** — uses tikwm.com to fetch the original-quality video without TikTok logos
