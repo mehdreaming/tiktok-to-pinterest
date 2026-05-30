@@ -332,12 +332,14 @@ The redirect URI in Google Cloud Console must EXACTLY match n8n's callback URL. 
 
 ## 🗺️ Roadmap
 
-- [ ] Pinterest API integration (auto-post approved rows)
-- [ ] yt-dlp fallback for blocked downloads
-- [ ] AI cover thumbnail generation (better Pinterest CTR)
-- [ ] Telegram/Slack error alerts
-- [ ] Local Ollama integration ($0 AI cost)
-- [ ] Semantic deduplication (similar-video detection)
+- 🔜 **Pinterest API integration** — auto-post approved rows
+- 🔜 **yt-dlp fallback** — for blocked downloads  
+- 💡 **AI cover thumbnail generation** — better Pinterest CTR
+- 💡 **Telegram/Slack error alerts** — notify on workflow failures
+- 💡 **Local Ollama integration** — truly $0 AI cost
+- 💡 **Semantic deduplication** — similar-video detection (not just exact URL match)
+
+> 🔜 = next up · 💡 = future ideas · PRs welcome on any of these
 
 ---
 
@@ -374,10 +376,10 @@ MIT — do whatever you want with this. Attribution appreciated but not required
 
 ## 🌐 Connect
 
-Built by **[@mehdreaming](https://github.com/mehdreaming)** 
+Built by **[@mehdreaming](https://github.com/mehdreaming)**
 
-- 📌 Pinterest: [framearchivedaily](https://pinterest.com/framearchivedaily) — daily anime frames
-- 📷 Instagram: [@mehdreaming](https://instagram.com/mehdreaming) — AMV edits
+- 🐦 X / Twitter: [@mehdreaming](https://x.com/mehdreaming) — automation builds + dev logs
+- 🤖 Reddit: [u/mehdreaming](https://reddit.com/u/mehdreaming) — n8n + creator tools discussion
 - 💼 Open to collabs on automation + creator tools
 
 If this saved you time, **drop a ⭐ on the repo** — it really helps.
