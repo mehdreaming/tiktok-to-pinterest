@@ -134,8 +134,9 @@ https://YOUR-N8N-SUBDOMAIN.app.n8n.cloud/rest/oauth2-credential/callback
 1. Go to [sheets.google.com](https://sheets.google.com) → create a new sheet
 2. Name it `Pinterest Queue`
 3. Add these column headers in Row 1:
+
 timestamp | keyword | tiktok_url | views | shares | duration | drive_file_id | drive_url | pin_title | pin_description | status
-4. **Copy the Sheet ID** from the URL: `docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`
+5. **Copy the Sheet ID** from the URL: `docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit`
 
 #### Create your Google Drive folder
 1. Go to [drive.google.com](https://drive.google.com) → **New → Folder**
