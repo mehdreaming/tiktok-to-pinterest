@@ -6,7 +6,7 @@
 [![Made with AI](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter-blueviolet.svg)]()
 ![Workflow](workflow.png)
 > Auto-discover viral TikToks → AI-generate Pinterest pin copy → queue in Google Sheets for review. Built with n8n. **Free tier only — $0/month.**
-
+![Workflow architecture](workflow.png)
 A single n8n workflow that scrapes TikTok by keyword, filters for viral content, downloads watermark-free HD videos, uploads them to Google Drive, generates SEO-optimized Pinterest titles + descriptions with AI, and writes everything to a Google Sheet for manual review.
 
 ---
